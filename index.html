@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grocery Inventory & Shopping List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    input[type="text"] {
+      width: 70%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #ccc;
+    }
+    .list-item input {
+      margin-right: 10px;
+    }
+    .shopping-list {
+      margin-top: 20px;
+    }
+    .shopping-list ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    .shopping-list li {
+      background-color: #f1f1f1;
+      padding: 10px;
+      margin-bottom: 5px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .remove-btn {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .remove-btn:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Grocery Inventory & Shopping List</h1>
+
+    <div>
+      <h3>Enter Item</h3>
+      <input type="text" id="itemInput" placeholder="Enter grocery item">
+      <button onclick="addItem()">Add Item</button>
+    </div>
+
+    <div>
+      <h3>Pantry Inventory</h3>
+      <ul id="inventoryList"></ul>
+    </div>
+
+    <div class="shopping-list">
+      <h3>Shopping List</h3>
+      <ul id="shoppingList"></ul>
+    </div>
+  </div>
+
+  <script>
+    let pantry = JSON.parse(localStorage.getItem('pantry')) || [];
+    let shoppingList = JSON.parse(localStorage.getItem('shoppingList')) || [];
+
+    // Function to add an item to the pantry
+    function addItem() {
+      const itemInput = document.getElementById('itemInput');
+      const itemName = itemInput.value.trim();
+
+      if (itemName) {
+        pantry.push({ name: itemName, inStock: true });
+        itemInput.value = '';
+        saveData();
+        renderInventory();
+      }
+    }
+
+    // Function to render the pantry inventory
+    function renderInventory() {
+      const inventoryList = document.getElementById('inventoryList');
+      inventoryList.innerHTML = '';
+
+      pantry.forEach((item, index) => {
+        const listItem = document.createElement('li');
+        listItem.classList.add('list-item');
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = !item.inStock;
+        checkbox.onclick = () => toggleStock(index);
+
+        const itemName = document.createElement('span');
+        itemName.textContent = item.name;
+
+        const addToShoppingListBtn = document.createElement('button');
+        addToShoppingListBtn.textContent = 'Add to Shopping List';
+        addToShoppingListBtn.onclick = () => addToShoppingList(item, index);
+
+        listItem.appendChild(checkbox);
+        listItem.appendChild(itemName);
+        listItem.appendChild(addToShoppingListBtn);
+        inventoryList.appendChild(listItem);
+      });
+    }
+
+    // Function to toggle the in-stock status of an item
+    function toggleStock(index) {
+      pantry[index].inStock = !pantry[index].inStock;
+      saveData();
+      renderInventory();
+    }
+
+    // Function to add an item to the shopping list
+    function addToShoppingList(item, index) {
+      if (!shoppingList.includes(item.name)) {
+        shoppingList.push(item.name);
+        saveData();
+        renderShoppingList();
+      }
+    }
+
+    // Function to render the shopping list
+    function renderShoppingList() {
+      const shoppingListEl = document.getElementById('shoppingList');
+      shoppingListEl.innerHTML = '';
+
+      shoppingList.forEach((item, index) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = item;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove';
+        removeBtn.classList.add('remove-btn');
+        removeBtn.onclick = () => removeFromShoppingList(index);
+
+        listItem.appendChild(removeBtn);
+        shoppingListEl.appendChild(listItem);
+      });
+    }
+
+    // Function to remove an item from the shopping list
+    function removeFromShoppingList(index) {
+      shoppingList.splice(index, 1); // Remove the item from the array
+      saveData(); // Save updated shopping list to localStorage
+      renderShoppingList(); // Re-render the shopping list
+    }
+
+    // Save data to localStorage
+    function saveData() {
+      localStorage.setItem('pantry', JSON.stringify(pantry));
+      localStorage.setItem('shoppingList', JSON.stringify(shoppingList));
+    }
+
+    // Initial rendering
+    renderInventory();
+    renderShoppingList();
+  </script>
+</body>
+</html>
